@@ -2,6 +2,7 @@ package com.zyh.chronicle.map.v3;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.concurrent.ThreadLocalRandom;
 
 import net.openhft.chronicle.core.values.LongValue;
 import net.openhft.chronicle.map.ChronicleMap;
@@ -14,7 +15,7 @@ import net.openhft.chronicle.values.Values;
  * @author zhyhang
  *
  */
-public class ChronicleMapRecycle {
+public class ChronicleMapRecycleV3 {
 
 	private static final ThreadLocal<LongValue> THREAD_LOCAL_LONGVALUE = ThreadLocal
 			.withInitial(() -> Values.newHeapInstance(LongValue.class));
@@ -38,10 +39,13 @@ public class ChronicleMapRecycle {
 				System.out.format("count[%d], max entry[%d],current size[%d]\n", i, maxEntry, map.longSize());
 			}
 			if (i >= maxEntry - 1) {
-				String removeKey = map.keySet().iterator().next();
-				map.remove(removeKey);
+				while (true) {
+					String removeKey = String.valueOf(ThreadLocalRandom.current().nextInt(i));
+					if (null != map.remove(removeKey) || map.size() == 0) {
+						break;
+					}
+				}
 			}
-
 		}
 		map.close();
 	}
